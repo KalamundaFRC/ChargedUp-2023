@@ -22,83 +22,60 @@ void Robot::RobotPeriodic() {}
 
 void Robot::AutonomousInit() {
   autoTimer.Reset();
+  gyro.Reset();
 }
 
-float getAccelNoGravity(float angle, float rawAccel){//gravity compensation
+// float getAccelNoGravity(float angle, float rawAccel){//gravity compensation
 
-  return rawAccel - (9800 * (std::sin(angle)));
+//   return rawAccel - (9800 * (std::sin(angle)));
+//std::cout << std::sin(leAngle) << ",    "<< leAccel << ",    " << leAngle << ",    " << getAccelNoGravity(leAngle, leAccel) << std::endl;
 
-}
+// }
 void Robot::AutonomousPeriodic() {
-
+  /*Balance Auto*/
   float leAngle = gyro.GetGyroAngleY().value();
-  float leAccel = gyro.GetAccelX().value();
 
-    std::cout << std::sin(leAngle) << ",    "<< leAccel << ",    " << leAngle << ",    " << getAccelNoGravity(leAngle, leAccel) << std::endl;
-   
-  //gravity compensation
+   std::cout << leAngle << std::endl;
 
-
-
-
-  //  // maybe change 0_deg to 2.5 -> 4 degrees
-  // if (gyro.GetAccelZ() == units::meters_per_second_squared_t(0))
-  // {
-  //   leftPower = -0.3;
-  //   rightPower = -0.3;
-  // }
-  if(gyro.GetGyroAngleX() > 0_deg)
-  {
-    leftPower = -0.25;
-    rightPower = -0.25;
-  }
-  else if(gyro.GetGyroAngleX() < 0_deg)
+  if(gyro.GetGyroAngleY() > 25_deg)
   {
     leftPower = 0.25;
     rightPower = 0.25;
   }
-  else
+  else if(gyro.GetGyroAngleY() < -25_deg)
+  {
+    leftPower = -0.25;
+    rightPower = -0.25;
+  }
+  else 
   {
     leftPower = 0;
     rightPower = 0;
   }
 
-  //backup*
+  victor.Set(ControlMode::PercentOutput, leftPower);
+  victor.Set(ControlMode::PercentOutput, rightPower);
+
+  /*Score&Taxi Auto*/
   autoTimer.Start();
    if(autoTimer.Get() <= 2_s){
    Solenoid.Set(frc::DoubleSolenoid::kReverse);
-   //leftPower = 0.23;
-   //rightPower = 0.23;
    }
-   else if(autoTimer.Get() <= 5_s){ //4.5
-   //leftPower = 0.55;
-   //rightPower = 0.50;
-   leftPower = 0.23;
-   rightPower = 0.20;
+   else if(autoTimer.Get() <= 5_s){
+   leftPower = 0.30;
+   rightPower = 0.28;
   }
   else
   {
-    //Solenoid.Set(frc::DoubleSolenoid::kForward);
     leftPower = 0;
     rightPower = 0;
     autoTimer.Stop();
   }
 
-  
-  //if(autoTimer.m_running)
-  
-  victor.Set(ControlMode::PercentOutput, leftPower);
-  victor.Set(ControlMode::PercentOutput, rightPower);
-
-
-  // frontLeftM.Set(ControlMode::PercentOutput, leftPower);
-  // frontRightM.Set(ControlMode::PercentOutput, rightPower);
-  // backLeftM.Set(ControlMode::PercentOutput, leftPower);
-  // backRightM.Set(ControlMode::PercentOutput, rightPower);
-  frontLeftM.SetNeutralMode(Brake);
-  frontRightM.SetNeutralMode(Brake);
-  backLeftM.SetNeutralMode(Brake);
-  backRightM.SetNeutralMode(Brake);
+   frontLeftM.Set(ControlMode::PercentOutput, leftPower);
+   frontRightM.Set(ControlMode::PercentOutput, rightPower);
+   backLeftM.Set(ControlMode::PercentOutput, leftPower);
+   backRightM.Set(ControlMode::PercentOutput, rightPower);
   
 }
 
@@ -126,7 +103,7 @@ void Robot::TeleopPeriodic() {
   if(std::abs(driver.GetZ()) > deadzone){
     turn = driver.GetZ();
   }
-  //bool negative = turn < 0;
+  //smoother turning?
   turn = turn*turn*(turn < 0 ? -1 : 1);
 
 
@@ -138,49 +115,22 @@ void Robot::TeleopPeriodic() {
     leftPower *= limit;
   }
 
+  if(driver.GetTriggerPressed()){
+    Solenoid.Toggle();
+  }
+
   /*Xbox Controller*/
   //leftPower = (driver.GetLeftY())*(driver.GetLeftY())*(driver.GetLeftY());
   //rightPower = (driver.GetRightY())*(driver.GetRightY())*(driver.GetRightY());
+  // if(codriver.GetRightBumperPressed()){
+  //   Solenoid.Toggle();
+  // }
 
 
   frontLeftM.Set(ControlMode::PercentOutput, leftPower);
   frontRightM.Set(ControlMode::PercentOutput, rightPower);
   backLeftM.Set(ControlMode::PercentOutput, leftPower);
   backRightM.Set(ControlMode::PercentOutput, rightPower);
-
-  // if (rightSolenoid.Get(frc::DoubleSolenoid::Value()) == 0) {
-  //   if(codriver.GetRightBumperPressed()){
-  //     rightSolenoid.Set(frc::DoubleSolenoid::Value(1));
-  //   } 
-  // } else if (rightSolenoid.Get(frc::DoubleSolenoid::Value()) == 1)
-  // {
-  //   if(codriver.GetRightBumperPressed()) {
-  //     rightSolenoid.Set(frc::DoubleSolenoid::Value(0));
-  //   }
-  // }
-  
-
-  // if(codriver.GetLeftBumperPressed()){
-  //   Solenoid.Set(frc::DoubleSolenoid::Value(1));
-  // }
-  // else{
-  //   rightSolenoid.Set(frc::DoubleSolenoid::Value(0));
-  // }
-  // if(codriver.GetRightBumperPressed()){
-  //   // Solenoid.Set(1, frc::DoubleSolenoid::Value(0));
-  //   Solenoid.Set(frc::DoubleSolenoid::kForward);
-  // }
-  // else{
-  //   Solenoid.Set(frc::DoubleSolenoid::kReverse);
-  // }
-
-  // if(codriver.GetRightBumperPressed()){
-  //   Solenoid.Toggle();
-  // }
-  // if(driver.GetTriggerPressed()){
-  //   Solenoid.Toggle();
-  // }
-
 
 } 
 

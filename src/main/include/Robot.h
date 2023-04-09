@@ -25,17 +25,13 @@
 
 class Robot : public frc::TimedRobot {
  public:
-   //frc::XboxController driver{0};
    frc::XboxController codriver{1};
    frc::Joystick driver{0};
    //frc::Compressor funnyHub{1, frc::PneumaticsModuleType::REVPH};
    frc::DoubleSolenoid Solenoid{1, frc::PneumaticsModuleType::REVPH, 0, 1};
-   //frc::AnalogGyro gyro{0};
    frc::ADIS16448_IMU gyro;
+   frc::Timer autoTimer;
    
-   
-
-   //frc::Joystick driver{0};
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;
@@ -48,7 +44,7 @@ class Robot : public frc::TimedRobot {
   void TestPeriodic() override;
   void SimulationInit() override;
   void SimulationPeriodic() override;
-   frc::Timer autoTimer;
+
    //*Xbox Controller* 
    double rightPower = 0;
    double leftPower = 0;
@@ -58,9 +54,9 @@ class Robot : public frc::TimedRobot {
    TalonSRX frontRightM{3};
    TalonSRX backLeftM{2};
    TalonSRX backRightM{4};
+   //Test Board
    VictorSPX victor{18};
 
-   //*pid*//
   private:
  
 };
